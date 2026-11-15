@@ -53,6 +53,25 @@ python src/data_loader.py
 Phase 1 — Development environment and initial project structure completed.
 
 Market data analysis and risk calculations are under development.
+## Quantitative Risk Analysis — Preliminary Findings
+
+Using approximately one year of dividend-adjusted historical prices for SPY, IVV, and VOO, I analyzed daily return differences, annualized relative tracking error, and short-term reversal behavior.
+
+### Key Findings
+
+- **Relative tracking error:** IVV exhibited 0.5364% annualized tracking error relative to SPY, compared with 0.3853% for VOO.
+- **Outlier sensitivity:** Excluding five trading days between June 25 and July 1, 2026 reduced the estimated relative tracking error by 35.63% for IVV and 28.52% for VOO.
+- **Dividend adjustments:** An investigation of dividend events and adjusted versus unadjusted prices showed that distributions explained several large raw-return differences but did not fully account for the late-June deviations.
+- **Short-term reversals:** IVV and VOO exhibited negative lag-1 correlations of −0.4344 and −0.5165, respectively, with next-day sign reversal rates of 65.06% and 69.08%.
+- **Robustness:** After excluding the late-June outlier period, lag-1 correlations remained negative at −0.4799 for IVV and −0.4844 for VOO.
+
+### Interpretation
+
+The results suggest that daily return differences between ETFs tracking the same index frequently reverse over short horizons. This pattern is consistent with temporary relative-price fluctuations, although additional data would be required to establish the underlying cause.
+
+These findings are descriptive and do not demonstrate a profitable trading strategy. Further analysis of historical NAVs, market microstructure, and transaction costs would be necessary.
+
+**Methodology note:** SPY was used as a peer reference ETF, not as an official S&P 500 total-return benchmark. Results are based on historical adjusted-price data and should be interpreted as relative ETF tracking analysis.
 
 ## Disclaimer
 

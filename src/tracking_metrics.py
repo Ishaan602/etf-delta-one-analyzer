@@ -44,6 +44,50 @@ def main():
     print("\nDaily Returns (%):")
     print((daily_returns * 100).round(3))
 
+def calculate_tracking_error(
+    etf_returns,
+    benchmark_returns,
+    trading_days=252
+):
+    """
+    Calculate annualized tracking error.
+
+    Parameters:
+        etf_returns: Daily ETF returns (decimal form)
+        benchmark_returns: Daily benchmark returns
+        trading_days: Trading days per year
+
+    Returns:
+        Annualized tracking error (decimal form)
+    """
+
+    # Align both return series by date
+    aligned = pd.concat(
+        [etf_returns, benchmark_returns],
+        axis=1,
+        keys=["ETF", "Benchmark"]
+    ).dropna()
+
+    if len(aligned) < 2:
+        raise ValueError(
+            "At least two aligned observations are required."
+        )
+
+    # Calculate daily tracking differences
+    tracking_diff = (
+        aligned["ETF"] - aligned["Benchmark"]
+    )
+
+    # Calculate daily standard deviation
+    daily_tracking_error = tracking_diff.std(ddof=1)
+
+    # Annualize tracking error
+    annualized_tracking_error = (
+        daily_tracking_error * trading_days ** 0.5
+    )
+
+    return annualized_tracking_error
+
 
 if __name__ == "__main__":
     main()
