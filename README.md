@@ -141,21 +141,44 @@ The following results were calculated using approximately one year of historical
 
 ### Next Development Phase
 
-**Phase 4 — Interactive Streamlit Dashboard**
+## Phase 4 — Interactive Streamlit Dashboard
 
-The next phase will integrate the existing calculations into an interactive financial analytics application with ETF selection, performance comparisons, quantitative risk metrics, and automated reporting.
-## Quantitative Risk Analysis — Preliminary Findings
+**Status: Complete**
 
-Using approximately one year of dividend-adjusted historical prices for SPY, IVV, and VOO, I analyzed daily return differences, annualized relative tracking error, and short-term reversal behavior.
+Developed a four-page interactive quantitative finance dashboard using Streamlit, integrating historical ETF market data with reusable Python risk analytics functions.
 
-### Key Findings
+### Dashboard Features
 
-- **Relative tracking error:** IVV exhibited 0.5364% annualized tracking error relative to SPY, compared with 0.3853% for VOO.
-- **Outlier sensitivity:** Excluding five trading days between June 25 and July 1, 2026 reduced the estimated relative tracking error by 35.63% for IVV and 28.52% for VOO.
-- **Dividend adjustments:** An investigation of dividend events and adjusted versus unadjusted prices showed that distributions explained several large raw-return differences but did not fully account for the late-June deviations.
-- **Short-term reversals:** IVV and VOO exhibited negative lag-1 correlations of −0.4344 and −0.5165, respectively, with next-day sign reversal rates of 65.06% and 69.08%.
-- **Robustness:** After excluding the late-June outlier period, lag-1 correlations remained negative at −0.4799 for IVV and −0.4844 for VOO.
+- **Market Overview:** Historical cumulative returns, adjusted closing prices, and a market risk snapshot for SPY, IVV, and VOO.
+- **Risk Analytics:** Interactive ETF selection, beta, correlation, relative tracking error, and 20-day annualized rolling volatility.
+- **ETF Comparison:** Multi-ETF performance comparisons, selectable 3-month, 6-month, and 1-year periods, and cumulative-return rankings.
+- **Reports:** Consolidated six-metric quantitative risk report with downloadable CSV export.
 
+### Technical Implementation
+
+- Built using Python, Streamlit, Pandas, NumPy, Matplotlib, and yfinance.
+- Reused validated financial calculations across the application.
+- Implemented cached market data retrieval to reduce redundant downloads.
+- Added automated consistency checks for financial metrics and performance calculations.
+- Organized the dashboard into modular page functions with shared data processing.
+
+### Run the Dashboard
+
+From the project root directory:
+
+```bash
+python -m streamlit run dashboard/app.py
+```
+
+Open the local URL displayed in the Terminal, typically `http://localhost:8501`.
+
+### Methodology Notes
+
+The dashboard uses dividend-adjusted historical ETF prices. SPY serves as the reference ETF for relative beta, correlation, and tracking-error analysis.
+
+The 3-month, 6-month, and 1-year controls affect the ETF Comparison page. The consolidated risk report uses the full downloaded observation period.
+
+Historical results are descriptive and do not establish profitable trading opportunities or predict future performance.
 ### Interpretation
 
 The results suggest that daily return differences between ETFs tracking the same index frequently reverse over short horizons. This pattern is consistent with temporary relative-price fluctuations, although additional data would be required to establish the underlying cause.
