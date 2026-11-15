@@ -151,6 +151,49 @@ def calculate_correlation(etf_returns, benchmark_returns):
 
     return correlation
 
+def calculate_rolling_volatility(
+    daily_returns,
+    window=20,
+    trading_days=252
+):
+    """
+    Calculate annualized rolling volatility.
+
+    Parameters:
+        daily_returns: Series or DataFrame of daily
+                       returns in decimal form
+        window: Number of trading-day returns
+                in each rolling window
+        trading_days: Trading days per year
+
+    Returns:
+        Annualized rolling volatility
+        in decimal form
+    """
+
+    if window < 2:
+        raise ValueError(
+            "Rolling window must be at least 2."
+        )
+
+    if trading_days <= 0:
+        raise ValueError(
+            "Trading days must be positive."
+        )
+
+    # Calculate rolling sample standard deviation
+    rolling_std = daily_returns.rolling(
+        window=window,
+        min_periods=window
+    ).std(ddof=1)
+
+    # Annualize the rolling standard deviation
+    rolling_volatility = (
+        rolling_std * trading_days ** 0.5
+    )
+
+    return rolling_volatility
+
 
 if __name__ == "__main__":
     main()
