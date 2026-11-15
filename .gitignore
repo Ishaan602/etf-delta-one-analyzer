@@ -1,0 +1,21 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# macOS files
+.DS_Store
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Downloaded market data
+data/
+
+# Generated reports
+outputs/
+
+# Environment variables
+.env
