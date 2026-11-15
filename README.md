@@ -47,12 +47,103 @@ Run the initial data loader:
 ```bash
 python src/data_loader.py
 ```
+### Generate the Quantitative Risk Report
 
+Run the consolidated ETF risk analysis:
+
+```bash
+python src/generate_risk_report.py
+```
+
+The script downloads historical market data, calculates financial risk metrics, performs validation checks, and generates a CSV report.
+
+The report is saved to:
+
+`outputs/etf_risk_report.csv`
+
+### Generate Performance and Risk Visualizations
+
+Cumulative ETF performance:
+
+```bash
+python src/visualize_returns.py
+```
+
+20-day rolling annualized volatility:
+
+```bash
+python src/visualize_volatility.py
+```
+
+Generated charts are saved in the `outputs/` directory.
+
+### Run Quantitative Validation Tests
+
+```bash
+python src/test_tracking_error.py
+python src/test_beta_correlation.py
+python src/test_rolling_volatility.py
+```
+
+These scripts verify the numerical implementation of tracking error, beta, correlation, and rolling volatility against controlled test cases.
 ## Current Status
 
-Phase 1 — Development environment and initial project structure completed.
+## Project Status
 
-Market data analysis and risk calculations are under development.
+**Phase 3 Complete — Quantitative Risk Analytics**
+
+The project currently includes a functioning Python-based ETF analytics pipeline with historical market data retrieval, financial return calculations, quantitative risk metrics, validation checks, and automated reporting.
+
+### Completed Features
+
+- Historical market data collection for SPY, IVV, and VOO using yfinance.
+- Daily and cumulative return calculations using Pandas and NumPy.
+- Annualized relative tracking error calculations using SPY as the reference ETF.
+- Beta and Pearson correlation analysis.
+- 20-day rolling annualized volatility calculations.
+- Investigation of tracking outliers, dividend adjustments, and short-term return reversals.
+- Automated ETF risk summary reporting to CSV.
+- Mathematical consistency checks for the core quantitative calculations.
+- Historical performance and rolling volatility visualizations using Matplotlib.
+
+### Quantitative Risk Summary
+
+The following results were calculated using approximately one year of historical dividend-adjusted ETF prices ending November 13, 2026.
+
+| Metric | SPY | IVV | VOO |
+|---|---:|---:|---:|
+| Cumulative Return (%) | 13.4804 | 13.5203 | 13.5211 |
+| Beta vs. SPY | 1.0000 | 1.0006 | 0.9950 |
+| Correlation vs. SPY | 1.0000 | 0.9992 | 0.9996 |
+| Relative Tracking Error (%) | 0.0000 | 0.5364 | 0.3853 |
+| Latest 20-Day Volatility (%) | 22.0719 | 22.0434 | 21.8920 |
+| Average 20-Day Volatility (%) | 12.6038 | 12.6310 | 12.5569 |
+
+### Key Findings
+
+**Market Exposure:** All three ETFs exhibited highly similar market exposure, with IVV and VOO showing betas close to 1 and correlations above 0.999 relative to SPY.
+
+**Tracking Consistency:** VOO exhibited lower annualized relative tracking error than IVV during the observation period.
+
+**Outlier Sensitivity:** Removing five trading days between June 25 and July 1, 2026 reduced estimated relative tracking error by 35.63% for IVV and 28.52% for VOO.
+
+**Short-Term Reversals:** Daily relative return differences frequently changed direction. The reversal pattern persisted after excluding the late-June outlier period.
+
+**Changing Market Risk:** All three ETFs reached their highest observed 20-day annualized volatility on November 11, 2026. SPY's peak was approximately 22.38%, compared with an average rolling volatility of approximately 12.60%.
+
+### Methodology and Limitations
+
+- SPY is used as a peer reference ETF rather than an official S&P 500 total-return benchmark.
+- Tracking-error estimates measure relative ETF return variability, not formal index replication accuracy.
+- Historical adjusted-price data approximates total-return performance but may differ from official fund total-return calculations.
+- The data is currently downloaded using a rolling one-year window. A fixed historical dataset will be introduced to improve reproducibility.
+- Statistical relationships do not establish causality or profitable trading opportunities.
+
+### Next Development Phase
+
+**Phase 4 — Interactive Streamlit Dashboard**
+
+The next phase will integrate the existing calculations into an interactive financial analytics application with ETF selection, performance comparisons, quantitative risk metrics, and automated reporting.
 ## Quantitative Risk Analysis — Preliminary Findings
 
 Using approximately one year of dividend-adjusted historical prices for SPY, IVV, and VOO, I analyzed daily return differences, annualized relative tracking error, and short-term reversal behavior.
