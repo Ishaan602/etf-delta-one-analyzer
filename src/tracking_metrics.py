@@ -88,6 +88,69 @@ def calculate_tracking_error(
 
     return annualized_tracking_error
 
+def calculate_beta(etf_returns, benchmark_returns):
+    """
+    Calculate ETF beta relative to a benchmark.
+
+    Beta = Covariance(ETF, Benchmark)
+           / Variance(Benchmark)
+    """
+
+    # Align observations by date
+    aligned = pd.concat(
+        [etf_returns, benchmark_returns],
+        axis=1,
+        keys=["ETF", "Benchmark"]
+    ).dropna()
+
+    if len(aligned) < 2:
+        raise ValueError(
+            "At least two observations are required."
+        )
+
+    # Calculate covariance
+    covariance = aligned["ETF"].cov(
+        aligned["Benchmark"]
+    )
+
+    # Calculate benchmark variance
+    benchmark_variance = aligned["Benchmark"].var()
+
+    if benchmark_variance <= 0:
+        raise ValueError(
+            "Benchmark variance must be positive."
+        )
+
+    # Calculate beta
+    beta = covariance / benchmark_variance
+
+    return beta
+
+
+def calculate_correlation(etf_returns, benchmark_returns):
+    """
+    Calculate Pearson correlation between
+    ETF and benchmark daily returns.
+    """
+
+    # Align observations by date
+    aligned = pd.concat(
+        [etf_returns, benchmark_returns],
+        axis=1,
+        keys=["ETF", "Benchmark"]
+    ).dropna()
+
+    if len(aligned) < 2:
+        raise ValueError(
+            "At least two observations are required."
+        )
+
+    correlation = aligned["ETF"].corr(
+        aligned["Benchmark"]
+    )
+
+    return correlation
+
 
 if __name__ == "__main__":
     main()
