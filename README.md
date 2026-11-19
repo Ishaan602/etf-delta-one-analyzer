@@ -190,3 +190,149 @@ These findings are descriptive and do not demonstrate a profitable trading strat
 ## Disclaimer
 
 This project is intended for educational and portfolio purposes only and does not constitute investment advice.
+## Reproducible Historical Market Data
+
+The project supports reproducible ETF analysis using a versioned historical data snapshot.
+
+### Historical Dataset
+
+- **Assets:** SPY, IVV, VOO
+- **Observation period:** November 14, 2025 – November 13, 2026
+- **Trading sessions:** 251
+- **Data source:** Yahoo Finance via yfinance
+- **Price methodology:** Dividend-adjusted closing prices
+- **Storage format:** CSV
+
+The historical dataset is stored at:
+
+`data/etf_adjusted_prices_2025-11-14_2026-11-13.csv`
+
+### Data Integrity
+
+The saved dataset was validated for expected ETF columns, historical coverage, duplicate dates, missing observations, finite positive prices, and file integrity.
+
+The SHA-256 checksum of the saved snapshot is:
+
+`9b250ff036b9364fcc97ea773571baee68c8736fd0bfd7307deb1a847e346e09`
+
+### Data Loading
+
+The analytics pipeline supports two data sources:
+
+- **Snapshot mode (default):** Loads the saved historical CSV without downloading prices.
+- **Yahoo Finance mode:** Downloads historical data using the configured fixed date range.
+
+Snapshot mode is used by default to preserve consistent input data across repeated analyses.
+
+### Reproducibility Validation
+
+The standalone risk report and Streamlit dashboard were independently executed using the saved historical snapshot.
+
+Both produced identical exported numerical results across all six quantitative metrics:
+
+1. Cumulative return
+2. Beta relative to SPY
+3. Correlation relative to SPY
+4. Annualized relative tracking error
+5. Latest 20-day annualized volatility
+6. Average 20-day rolling volatility
+
+The maximum absolute difference between the two exported reports was zero at six-decimal precision.
+
+### Run the Validation
+
+Validate the historical snapshot:
+
+```bash
+python src/validate_data_snapshot.py
+```
+
+Validate the snapshot loader:
+
+```bash
+python src/test_snapshot_loader.py
+```
+
+Generate the consolidated risk report:
+
+```bash
+python src/generate_risk_report.py
+```
+
+Compare the standalone and dashboard CSV reports:
+
+```bash
+python src/compare_risk_reports.py
+```
+
+The comparison script expects a dashboard-exported CSV at `outputs/etf_dashboard_report.csv`.
+
+### Limitations
+
+The snapshot preserves adjusted closing prices but not the complete original corporate-action records or intraday market data.
+
+Fixed historical inputs improve reproducibility, although exact results across different computing environments can also depend on Python and library versions.
+
+SPY serves as a peer reference ETF rather than an official S&P 500 total-return benchmark.
+### Index-Relative Tracking Outlier Investigation
+
+**Historical period:** November 14, 2025 – November 13, 2026  
+**Benchmark:** S&P 500 Total Return Index (`^SP500TR`), distributed through Yahoo Finance  
+**Observations:** 250 aligned daily returns
+
+#### Tracking-Error Sensitivity
+
+The analysis identified unusually large ETF-minus-index daily return differences on June 26 and June 29, 2026.
+
+| ETF | Full Tracking Error | Excluding June 26 & 29 | Reduction |
+|---|---:|---:|---:|
+| SPY | 1.0291% | 0.6088% | 40.84% |
+| IVV | 1.2744% | 0.6280% | 50.73% |
+| VOO | 0.8435% | 0.5494% | 34.87% |
+
+Removing two of the 250 daily observations reduced annualized tracking error by approximately 35%–51%, demonstrating that the estimates were highly sensitive to a small number of extreme daily deviations.
+
+The filtered estimates are sensitivity diagnostics, not replacements for the full-sample tracking-error estimates.
+
+#### Dividend Adjustment Investigation
+
+Raw-versus-adjusted ETF return comparisons showed that dividend adjustments did not materially affect SPY or IVV returns on June 26 or June 29.
+
+VOO's June 26 dividend adjustment increased its measured daily return by approximately 28.89 basis points, reducing but not eliminating its index-relative tracking deviation.
+
+#### SPY Premium/Discount Evidence
+
+Historical premium/discount observations obtained from State Street's official SPY chart were:
+
+| Date | Premium/Discount |
+|---|---:|
+| June 25, 2026 | +4.6689 bps |
+| June 26, 2026 | −46.8279 bps |
+| June 29, 2026 | −4.7019 bps |
+
+SPY's premium/discount changed by −51.4968 bps on June 26 and +42.1260 bps on June 29.
+
+These movements were directionally consistent with SPY's index-relative tracking deviations of −67.8515 bps and +47.1898 bps, respectively.
+
+The evidence supports the hypothesis that changing ETF market-price premiums and discounts contributed to the tracking deviations.
+
+Precise causal attribution remains unresolved because the fund-provider premium/discount methodology may use a different market-price convention from the adjusted closing prices used in the analysis.
+
+#### IVV and VOO NAV Data Limitations
+
+Official fund-provider historical NAV and premium/discount sources were investigated for IVV and VOO.
+
+The required daily observations for June 25, June 26, and June 29, 2026 were not accessible through the sources examined.
+
+Consequently, the market-price premium/discount explanation remains unverified for IVV and VOO.
+
+#### Methodological Limitations
+
+- ETF returns are calculated using dividend-adjusted market closing prices rather than official fund NAV total returns.
+- The index benchmark uses Yahoo Finance-distributed S&P 500 Total Return Index levels.
+- ETF market-price and benchmark valuation conventions may differ.
+- The historical premium/discount evidence does not establish exact causal attribution.
+- Full-sample tracking-error estimates remain the primary descriptive results.
+- Filtered estimates are used only to assess outlier sensitivity.
+
+**Conclusion:** A small number of synchronized late-June observations materially influenced market-price-based index-relative tracking error. SPY premium/discount evidence supports a temporary market-price dislocation hypothesis, while the precise causes of IVV and VOO deviations remain unresolved.

@@ -29,6 +29,13 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from data_loader import download_etf_data, ETF_TICKERS
+from advanced_tracking import (
+    load_prices as load_index_prices,
+    returns_from_prices as index_returns_from_prices,
+    tracking_summary as index_tracking_summary,
+    daily_tracking_differences,
+    rolling_tracking_table,
+)
 
 from tracking_metrics import (
     calculate_daily_returns,
@@ -680,6 +687,21 @@ def show_reports(
     )
 
     st.divider()
+    st.subheader("Index Tracking Report")
+    try:
+        _, _, advanced_summary = load_advanced_data()
+        st.dataframe(advanced_summary.round(4), use_container_width=True)
+        st.download_button(
+            "Download Index Tracking Report (CSV)",
+            advanced_summary.to_csv(index_label="ETF", float_format="%.6f"),
+            file_name="index_tracking_report.csv",
+            mime="text/csv",
+            key="index_report_download",
+        )
+    except (FileNotFoundError, ValueError, KeyError) as error:
+        st.warning(f"Index tracking report unavailable: {error}")
+
+    st.divider()
 
     st.subheader("Report Methodology")
 
@@ -719,6 +741,86 @@ def show_reports(
 
 
 # ============================================================
+# ADVANCED INDEX TRACKING (SAVED SNAPSHOTS ONLY)
+# ============================================================
+
+@st.cache_data(show_spinner=False)
+def load_advanced_data():
+    """Read the immutable ETF and SP500TR snapshots; never download."""
+    prices = load_index_prices()
+    returns = index_returns_from_prices(prices)
+    summary = index_tracking_summary(prices, returns)
+    return prices, returns, summary
+
+
+def show_advanced_tracking(prices, returns, summary):
+    st.header("Advanced Index Tracking")
+    st.caption(
+        "ETF adjusted market closing prices versus the Yahoo Finance-distributed "
+        "S&P 500 Total Return Index (SP500TR). Not official ETF NAV tracking."
+    )
+
+    view = st.radio(
+        "Analysis view",
+        ["Index Overview", "Rolling Tracking Error", "Daily Deviations", "Outlier Sensitivity"],
+        horizontal=True,
+        key="advanced_view",
+    )
+    selected = st.multiselect(
+        "ETFs to display", ETF_TICKERS, default=ETF_TICKERS,
+        key="advanced_etfs",
+    )
+
+    if view == "Index Overview":
+        st.subheader("ETF and benchmark cumulative performance")
+        cumulative = (prices.div(prices.iloc[0]) - 1) * 100
+        st.line_chart(cumulative[selected + ["SP500TR"]], y_label="Cumulative return (%)")
+        st.subheader("Index-relative tracking metrics")
+        st.dataframe(summary.round(4), use_container_width=True)
+
+    elif view == "Rolling Tracking Error":
+        window = st.selectbox("Rolling window (trading days)", [20, 60], key="advanced_window")
+        if not selected:
+            st.warning("Select at least one ETF.")
+            return
+        rolling = rolling_tracking_table(returns, window) * 100
+        valid = rolling[selected].dropna(how="all")
+        st.subheader(f"{window}-day annualized tracking error")
+        st.line_chart(valid, y_label="Annualized tracking error (%)", height=430)
+        st.dataframe(valid.agg(["mean", "max"]).round(4), use_container_width=True)
+        st.caption("An outlier affects each rolling window containing that date.")
+
+    elif view == "Daily Deviations":
+        if not selected:
+            st.warning("Select at least one ETF.")
+            return
+        differences = daily_tracking_differences(returns) * 10000
+        st.subheader("Daily ETF-minus-index differences")
+        st.line_chart(differences[selected], y_label="Tracking difference (bps)", height=430)
+        st.dataframe(differences[selected].round(4), use_container_width=True)
+
+    else:
+        st.subheader("Full-sample versus filtered tracking error")
+        columns = ["Annualized Tracking Error (%)", "Filtered TE (%)", "TE Reduction (%)"]
+        st.dataframe(summary.loc[:, columns].round(4), use_container_width=True)
+        st.info(
+            "Filtered estimates exclude June 26 and June 29, 2026 only as a "
+            "sensitivity test. Full-sample estimates remain the primary results."
+        )
+        st.markdown(
+            "**Research finding:** SPY premium/discount observations support "
+            "a possible market-price contribution to the June deviations. "
+            "Equivalent historical NAV evidence for IVV and VOO was unavailable; "
+            "precise attribution remains unconfirmed."
+        )
+
+    st.caption(
+        f"Snapshot: {prices.index[0].date()} to {prices.index[-1].date()} "
+        f"| {len(returns)} aligned daily returns"
+    )
+
+
+# ============================================================
 # SIDEBAR
 # ============================================================
 
@@ -738,6 +840,7 @@ with st.sidebar:
             "Market Overview",
             "Risk Analytics",
             "ETF Comparison",
+            "Advanced Tracking",
             "Reports",
         ],
         index=0,
@@ -842,6 +945,15 @@ def main():
             closing_prices,
             cumulative_returns,
         )
+
+    elif navigation == "Advanced Tracking":
+        try:
+            advanced_prices, advanced_returns, advanced_summary = load_advanced_data()
+        except (FileNotFoundError, ValueError, KeyError) as error:
+            st.error("Advanced tracking snapshots could not be loaded.")
+            st.exception(error)
+            st.stop()
+        show_advanced_tracking(advanced_prices, advanced_returns, advanced_summary)
 
     elif navigation == "Reports":
 
